@@ -1,49 +1,47 @@
 # -*- coding: utf-8 -*-
 """Twitter APIの共通関数のモジュール."""
+import configparser
 import os
+from pathlib import Path
+from typing import Dict
 
 from twitter import OAuth, Twitter
+
+
+CONFIG_PATH = Path("../config/env.ini")
 
 
 def get_environment_vars() -> (str, str, str, str):
     """環境変数の取得.
 
     Returns:
-        Tuple(str, str, str, str): Twitterへのアクセスに必要な情報
+        Dict[str, str]: Twitterへのアクセスのためのkey
     Raises:
         IOError: 環境変数が取得できないときに発火
 
     """
-    api_key = os.getenv("TWITTER_KEY")
-    api_key_secret = os.getenv("TWITTER_KEY_SECRET")
-    token = os.getenv("TWITTER_TOKEN")
-    secret = os.getenv("TWITTER_TOKEN_SECRET")
+    config = configparser.ConfigParser()
+    config.read(CONFIG_PATH)
+    env_var_keys = config["DEFAULT"]
 
-    if None in [api_key, api_key_secret, token, secret]:
+    env_vars = {k: os.getenv(v) for k, v in env_var_keys.items()}
+
+    if None in env_vars.values():
         raise IOError("""\
-Need to set the following environment variables: $TWITTER_TOKEN, \
-$TWITTER_TOKEN_SECRET.
+Need to set environment variables.
 see README.md""")
 
-    return api_key, api_key_secret, token, secret
+    return env_vars
 
 
-def get_authorized_client(api_key: str, api_key_secret: str,
-                          token: str, token_secret: str) -> Twitter:
+def get_authorized_client(keys: Dict[str, str]) -> Twitter:
     """認証済のクライアントを返す.
 
     Args:
-        api_key (str)
-        api_key_secret (str)
-        token (str)
-        token_secret (str)
+        keys (Dict[str, str]): 認証に必要なkey
+                               詳細はREADMEを参照
     Returns:
         Twitter: 認証済のクライアント
 
     """
-    return Twitter(auth=OAuth(
-        consumer_key=api_key,
-        consumer_secret=api_key_secret,
-        token=token,
-        token_secret=token_secret,
-    ))
+    return Twitter(auth=OAuth(**keys))

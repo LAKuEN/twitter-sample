@@ -44,7 +44,7 @@ def main(keyword: str):
         keys = twutil.get_environment_vars()
     except IOError:
         raise
-    tw = twutil.get_authorized_client(*keys)
+    tw = twutil.get_authorized_client(keys)
 
     return search_tweets(tw, keyword)
 
