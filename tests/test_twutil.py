@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """twutilのテストケース."""
-import configparser
-
 import pytest
+from twitter import Twitter
 
 import src.lib.twutil as twutil
 
 
 class TestGetEnvironmentVars:
+    """get_environment_vars() のテストケース."""
+
     def test_normal(self, mocker):
         """正常系: 環境変数が全て設定されている場合."""
         with mocker.patch("os.getenv", mocker.MagicMock(return_value="")):
             twutil.get_environment_vars()
 
-    # TODO iniファイルを読み込むように修正する
     test_data_abnormal = [
         (
             # 環境変数が全て設定されていない場合
@@ -47,9 +47,29 @@ class TestGetEnvironmentVars:
 
 
 class TestGetAuthorizedClient:
-    # NOTE 入力値の組み合わせのテストはmockで行うのが望ましい
-    #      疎通確認は正しい環境変数を設定した環境で行うのが良いが、そもそも必要か？
-    # 全ての環境変数に正しい値を設定している場合
-    # 全ての環境変数に不正な値を設定している場合
-    # 一部の環境変数に不正な値を設定している場合
-    pass
+    """get_authorized_client() のテストケース."""
+
+    def test_normal(self):
+        """正常系."""
+        # NOTE 当該関数はget_environment_vars() で予め環境変数が設定されることが前提となっている
+        #      また、Twitterオブジェクトの生成時に不正な文字列を与えてもエラーを吐かない
+        keys = {
+            "consumer_key": "",
+            "consumer_secret": "",
+            "token": "",
+            "token_secret": "",
+        }
+        want = Twitter
+        got = twutil.get_authorized_client(keys)
+
+        assert isinstance(got, want)
+
+    def test_abnormal(self):
+        """異常系: キーが欠損している場合."""
+        keys = {
+            "consumer_key": "",
+            "consumer_secret": "",
+            "token": "",
+        }
+        with pytest.raises(TypeError):
+            twutil.get_authorized_client(keys)
