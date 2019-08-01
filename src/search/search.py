@@ -15,11 +15,13 @@ def search_tweets(client: Twitter, keyword: str,
         keys ([str]): 検索結果から取り出すkeyのlist
     Returns:
         [{str: str}]: 検索結果
+    Raises:
+        twitter.api.TwitterHTTPError: クライアントかクエリパラメータが不正な場合に発火
+        KeyError: APIの返却値に含まれないkeyがkeysに含まれている場合に発火
 
     """
     tweets = client.search.tweets(q=keyword)
     extracted = []
-    print(tweets)
     for tweet in tweets["statuses"]:
         elems = {key: tweet[key] for key in keys}
         extracted.append(elems)
