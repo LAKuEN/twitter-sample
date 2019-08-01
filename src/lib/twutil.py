@@ -20,6 +20,8 @@ def get_environment_vars() -> (str, str, str, str):
         IOError: 環境変数が取得できないときに発火
 
     """
+    if not CONFIG_PATH.exists():
+        raise IOError()
     config = configparser.ConfigParser()
     config.read(CONFIG_PATH)
     env_var_keys = config["DEFAULT"]
