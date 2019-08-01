@@ -252,15 +252,13 @@ class TestSeachTweets:
 
         want = [
             {
-                "text": "Today's new update means that you can finally add Pizza Cat to your Retweet with comments! Learn more about this ne… https://t.co/Rbc9TF2s5" 
+                "text": "Today's new update means that you can finally add Pizza Cat to your Retweet with comments! Learn more about this ne… https://t.co/Rbc9TF2s5X",
              }
         ]
         mock_obj = mocker.MagicMock(name="Twitter")
-        mock_func = mocker.MagicMock(return_value=return_value)
-        # FIXME インスタンスメソッドをmockでパッチする方法がわからないので調査する
-        with mocker.patch.object(Twitter, "search.tweets", mock_func):
-            got = search.search_tweets(mock_obj, keyword)
-            assert want == got
+        mock_obj.search.tweets.return_value = return_value
+        got = search.search_tweets(mock_obj, keyword)
+        assert want == got
 
     test_data = [
         # TODO 実装
@@ -274,8 +272,5 @@ class TestSeachTweets:
         # -> 掲題の通りの方法で再現できる
     ]
 
-
     def test_abnormal(self):
-
-
-
+        pass
