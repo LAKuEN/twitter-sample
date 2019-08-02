@@ -8,7 +8,6 @@ from search import search
 class TestSeachTweets:
     """search_tweetsのテストケース."""
 
-
     return_value = \
         {
             "statuses": [
@@ -281,9 +280,10 @@ class TestSeachTweets:
     @pytest.mark.parametrize("keyword, want", test_data)
     def test_abnormal(self, mocker, keyword, want):
         """異常系."""
-        mock_obj = mocker.MagicMock(name="Twitter")
-        mock_obj.search.tweets.return_value = self.return_value
-        # FIXME インスタンスメソッドにside_effectを指定する方法がわからないので調査
-        mock_obj.search.tweets.side_effect = want
+        mock = mocker.MagicMock(name="Twitter")
+        mock.search.tweets.return_value = self.return_value
+        mock.search.tweets.side_effect = want
+
+        # FIXME twitter.api.TwitterHTTPErrorオブジェクトの生成時に引数の指定がされてないってエラーが出てしまう
         with pytest.raises(want):
-            search.search_tweets(mock_obj, keyword)
+            search.search_tweets(mock, keyword)
