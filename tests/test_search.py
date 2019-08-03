@@ -260,30 +260,36 @@ class TestSeachTweets:
         got = search.search_tweets(mock_obj, keyword)
         assert want == got
 
+    # NOTE 正しい内容のtwitter.api.TwitterHTTPErrorが発火されているかを確認するのはこのテストの役割ではない
+    #      -> Exceptionで代替
     test_data = [
-        # FIXME この関数をどうテストすべきか思案中
-        #       Twitterオブジェクトのmockを作り分ける必要がある
-        # TODO 実装
-        # * クライアントの認証時エラー: twitter.api.TwitterHTTPError
-        # details: {'errors': [{'code': 32, 'message': 'Could not authenticate you.'}]}
+        # # クライアントの認証時エラー: 不正なパラメータをTwitterオブジェクトに設定してリクエストすると発火
+        # Exceptionクラス: twitter.api.TwitterHTTPError
+        #                  details: {
+        #                      'errors': [{'code': 32,
+        #                      'message': 'Could not authenticate you.'
+        #                  }]}
         # -> 不正なパラメータを設定した状態でリクエストを投げると再現できる
-        # -> 検索ワードを空文字列として与えれば再現できる
-        ["twitter", twitter.api.TwitterHTTPError],
-        # * 検索ワードが空のエラー: twitter.api.TwitterHTTPError
-        # details: {'errors': [{'code': 25, 'message': 'Query parameters are missing.'}]}
-        ["", twitter.api.TwitterHTTPError],
-        # * 存在しないkeyを取り出した場合のエラー: KeyError
-        # -> 掲題の通りの方法で再現できる
-        ["twitter", KeyError],
+        # -> 検索ワードを空文字列として与えた際に発火
+        ["twitter", ["text"], Exception],
+        # # 検索ワードが空のエラー: qを""としてTwitter.search.tweets()に与えると発火
+        # Exceptionクラス: twitter.api.TwitterHTTPError
+        #                  details: {
+        #                      'errors': [{
+        #                          'code': 25,
+        #                          'message': 'Query parameters are missing.'
+        #                  }]}
+        ["", ["text"], Exception],
+        # # 存在しないkeyを取り出した場合のエラー: KeyError
+        ["twitter", ["invalid_key"], KeyError],
     ]
 
-    @pytest.mark.parametrize("keyword, want", test_data)
-    def test_abnormal(self, mocker, keyword, want):
+    @pytest.mark.parametrize("keyword, keys, want", test_data)
+    def test_abnormal(self, mocker, keyword, keys, want):
         """異常系."""
         mock = mocker.MagicMock(name="Twitter")
-        mock.search.tweets.return_value = self.return_value
         mock.search.tweets.side_effect = want
 
-        # FIXME twitter.api.TwitterHTTPErrorオブジェクトの生成時に引数の指定がされてないってエラーが出てしまう
-        with pytest.raises(want):
-            search.search_tweets(mock, keyword)
+        with pytest.raises(want), \
+                mocker.patch.object(search, "Twitter", mock):
+            search.search_tweets(mock, keyword, keys)
