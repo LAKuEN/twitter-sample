@@ -21,7 +21,7 @@ def get_environment_vars() -> (str, str, str, str):
 
     """
     if not CONFIG_PATH.exists():
-        raise IOError()
+        raise IOError(f"Cannot read config file: {CONFIG_PATH}.")
     config = configparser.ConfigParser()
     config.read(CONFIG_PATH)
     env_var_keys = config["DEFAULT"]

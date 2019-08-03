@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """twutilのテストケース."""
+from pathlib import Path
+
 import pytest
 from twitter import Twitter
 
@@ -38,11 +40,17 @@ class TestGetEnvironmentVars:
     ]
 
     @pytest.mark.parametrize("env_vars, want", test_data_abnormal)
-    def test_abnormal(self, mocker, env_vars, want):
-        """異常系."""
+    def test_abnormal_invalid_env_vars(self, mocker, env_vars, want):
+        """異常系: 不正な環境変数が設定されている もしくは 必要な環境変数が設定されていない場合."""
         with pytest.raises(want), \
             mocker.patch("os.getenv",
                          mocker.MagicMock(side_effect=lambda k: env_vars[k])):
+            twutil.get_environment_vars()
+
+    def test_abnormal_not_exist_config(self, mocker):
+        """異常系: 設定ファイルパスが異常な場合."""
+        with pytest.raises(IOError):
+            mocker.patch.object(twutil, "CONFIG_PATH", Path("invalid_path"))
             twutil.get_environment_vars()
 
 
